@@ -1,0 +1,124 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  customerId Int      @id @default(autoincrement())
+  firstName  String
+  lastName   String
+  email      String
+  phone      String
+  address    String
+  Order      Order[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Product {
+  productId   Int               @id @default(autoincrement())
+  name        String
+  description String
+  price       Float
+  imageUrl    String
+  categories  ProductCategory[]
+  OrderItem   OrderItem[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model Category {
+  categoryId Int               @id @default(autoincrement())
+  name       String
+  products   ProductCategory[]
+}
+
+model ProductCategory {
+  productId  Int
+  categoryId Int
+  product    Product  @relation(fields: [productId], references: [productId])
+  category   Category @relation(fields: [categoryId], references: [categoryId])
+
+  @@id([productId, categoryId])
+}
+
+model Order {
+  orderId       Int             @id @default(autoincrement())
+  orderDate     DateTime
+  customerId    Int
+  subtotal      Float
+  tax           Float
+  total         Float
+  customer      Customer        @relation(fields: [customerId], references: [customerId])
+  orderItems    OrderItem[]
+  orderShipping OrderShipping[]
+  orderPayments OrderPayment[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model OrderItem {
+  orderItemId Int      @id @default(autoincrement())
+  orderId     Int
+  productId   Int
+  quantity    Int
+  price       Float
+  discount    Float
+  order       Order    @relation(fields: [orderId], references: [orderId])
+  product     Product  @relation(fields: [productId], references: [productId])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Shipping {
+  shippingId    Int             @id @default(autoincrement())
+  name          String
+  orderShipping OrderShipping[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model Payment {
+  paymentId     Int            @id @default(autoincrement())
+  name          String
+  orderPayments OrderPayment[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model OrderShipping {
+  orderId    Int
+  shippingId Int
+  order      Order    @relation(fields: [orderId], references: [orderId])
+  shipping   Shipping @relation(fields: [shippingId], references: [shippingId])
+
+  @@id([orderId, shippingId])
+}
+
+model OrderPayment {
+  orderId   Int
+  paymentId Int
+  order     Order   @relation(fields: [orderId], references: [orderId])
+  payment   Payment @relation(fields: [paymentId], references: [paymentId])
+
+  @@id([orderId, paymentId])
+}
+
+model User {
+  userId    Int      @id @default(autoincrement())
+  username  String
+  password  String
+  email     String   @unique
+  hashedRt  String?
+  role      String   @default("user") // could be "admin", "customer", "guest", etc.
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
