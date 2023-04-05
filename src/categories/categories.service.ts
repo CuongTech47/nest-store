@@ -41,6 +41,9 @@ export class CategoriesService {
   async findOne(id: number) {
     return await this.prisma.category.findUnique({
       where: { categoryId: id },
+      include : {
+        products : true
+      }
     });
   }
 

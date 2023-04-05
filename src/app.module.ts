@@ -8,9 +8,13 @@ import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from "@nestjs/core";
 import { AtGuard } from "./common/guards";
 import { ConfigModule } from "@nestjs/config";
+import { MulterModule } from "@nestjs/platform-express";
+
 
 @Module({
-  imports: [ConfigModule.forRoot({isGlobal : true}),CategoriesModule, ProductsModule, UsersModule, AuthModule ],
+  imports: [ConfigModule.forRoot({isGlobal : true}),CategoriesModule, ProductsModule, UsersModule, AuthModule,MulterModule.register({
+    dest : './uploads'
+  }) ],
   controllers: [AppController],
   providers: [AppService,{
     provide : APP_GUARD,
