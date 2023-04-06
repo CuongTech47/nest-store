@@ -12,6 +12,8 @@ import * as argon from 'argon2';
 import { Tokens, JwtPayload } from './types';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { CustomerDetailsType } from './types/customerDetails.type';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -20,17 +22,54 @@ export class AuthService {
     private config: ConfigService,
   ) {}
 
-  async signinLocal(dto: loginAuth): Promise<Tokens> {
+  async validateCustomer(customerDetails: CustomerDetailsType) {
+    console.log('AuthService');
+    console.log(customerDetails);
 
+    const customer = await this.prisma.customer.findUnique({
+      where: {
+        email: customerDetails.email,
+      },
+    });
+
+    console.log(customer);
+
+    if (customer) {
+      return customer;
+    }
+
+    const newCustomer =  await this.prisma.customer.create({
+      data: {
+        email: customerDetails.email,
+        name: customerDetails.name,
+        imgUrl: customerDetails.imgUrl,
+        address: 'null',
+        phone: 'null',
+      },
+    });
+    return newCustomer
+  }
+
+  async findCustomer(customerId : number){
+    const customer = await this.prisma.customer.findUnique({
+      where : {
+        customerId : customerId
+      }
+    })
+
+    return customer
+  }
+
+  async signinLocal(dto: loginAuth): Promise<Tokens> {
     const user = await this.prisma.user.findUnique({
       where: {
         email: dto.email,
       },
     });
-  
-    if (!user) throw new ForbiddenException("Access Denied");
+
+    if (!user) throw new ForbiddenException('Access Denied');
     const passwordMatches = await argon.verify(user.password, dto.password);
-    console.log(passwordMatches)
+    console.log(passwordMatches);
     if (!passwordMatches) throw new ForbiddenException('Truy cập bị từ chối');
     const tokens = await this.getTokens(user.userId, user.email, user.role);
     await this.updateRtHash(user.userId, tokens.refresh_token);
@@ -85,6 +124,7 @@ export class AuthService {
     });
     return true;
   }
+
   async refeshTokens(userId: number, rt: string) {
     const user = await this.prisma.user.findUnique({
       where: {

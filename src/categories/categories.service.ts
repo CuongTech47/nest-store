@@ -3,9 +3,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { PrismaService } from '../prisma.service';
 import { PaginationService } from '../pagination/paginator';
-import { GetFilterCategoryDto } from "./dto/get-filter-category.dto";
-
-
+import { GetFilterCategoryDto } from './dto/get-filter-category.dto';
 
 @Injectable()
 export class CategoriesService {
@@ -23,27 +21,24 @@ export class CategoriesService {
   async findAllWithFilter(getFilterCategoryDto: GetFilterCategoryDto) {
     // let category = this.findAll(1, 10);
 
-    const {search} = getFilterCategoryDto
-    let allCategories  = await this.prisma.category.findMany()
-    console.log(allCategories)
+    const { search } = getFilterCategoryDto;
+    let allCategories = await this.prisma.category.findMany();
+    console.log(allCategories);
     if (search) {
-      allCategories = allCategories.filter(category =>
-        category.name.includes(search)
-      )
+      allCategories = allCategories.filter((category) =>
+        category.name.includes(search),
+      );
     }
 
-
-
-    return allCategories
-
+    return allCategories;
   }
 
   async findOne(id: number) {
     return await this.prisma.category.findUnique({
       where: { categoryId: id },
-      include : {
-        products : true
-      }
+      include: {
+        products: true,
+      },
     });
   }
 

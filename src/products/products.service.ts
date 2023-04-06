@@ -14,7 +14,7 @@ import * as fs from 'fs-extra';
 
 import { CreatePhotoDto } from './dto/upload-product.dto';
 import { extname } from 'path';
-import multer, { diskStorage, DiskStorageOptions  } from 'multer';
+import multer, { diskStorage, DiskStorageOptions } from 'multer';
 import { doc } from 'prettier';
 import join = doc.builders.join;
 @Injectable()
@@ -105,31 +105,147 @@ export class ProductsService {
   }
 
   async uploadPhoto(productId: number, file: string) {
-
     const product = await this.prisma.product.findUnique({
-      where : {
-        productId : Number(productId)
-      }
-    })
+      where: {
+        productId: Number(productId),
+      },
+    });
     if (!product) {
       throw new NotFoundException(`Product with id ${productId} not found`);
     }
 
-
     return await this.prisma.product.update({
-      where : {
-        productId : Number(productId)
+      where: {
+        productId: Number(productId),
       },
-      data : {
-        imageUrl : file
-      }
-    })
-
-
+      data: {
+        imageUrl: file,
+      },
+    });
   }
-  async getPicture(){
+  async getPicture() {}
 
+
+  // async updateProductCategories(productId: number, categoryIds: number[]) {
+  //   const product = await this.prisma.product.findUnique({
+  //     where: { productId: productId },
+  //     include: { categories: true },
+  //   });
+  //
+  //
+  //   if (!product) {
+  //     throw new NotFoundException(`Product with ID ${productId} not found`);
+  //   }
+  //
+  //   const existingCategoryIds = product.categories.map((category) => category.categoryId);
+  //   const newCategoryIds = categoryIds.filter((categoryId) => !existingCategoryIds.includes(categoryId));
+  //
+  //   const newProductCategories = newCategoryIds.map((categoryId) => {
+  //     return {
+  //       productId: productId,
+  //       categoryId: categoryId,
+  //     };
+  //   });
+  //
+  //   const createdProductCategories = await this.prisma.productCategory.createMany({
+  //     data: newProductCategories,
+  //   });
+  //
+  //   const updatedProduct = await this.prisma.product.update({
+  //     where: { productId: productId },
+  //     data: {
+  //       categories: {
+  //         set: [
+  //           ...product.categories.map((category) => ({
+  //             productId: productId,
+  //             categoryId: category.categoryId,
+  //           })),
+  //           ...newCategoryIds.map((categoryId) => ({
+  //             productId: productId,
+  //             categoryId: categoryId,
+  //           })),
+  //         ] as any,
+  //       },
+  //     },
+  //   });
+  //
+  //   return updatedProduct;
+  // }
+
+  async updateProductCategories(productId: number, categoryIds: number[]) {
+    const product = await this.prisma.product.findUnique({
+      where: { productId: productId },
+      include: { categories: true },
+    });
+
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${productId} not found`);
+    }
+
+    const existingCategoryIds = product.categories.map((category) => category.categoryId);
+    const newCategoryIds = categoryIds.filter((categoryId) => !existingCategoryIds.includes(categoryId));
+
+    const newProductCategories = newCategoryIds.map((categoryId) => {
+      return {
+        productId: productId,
+        categoryId: categoryId,
+      };
+    });
+
+    const createdProductCategories = await this.prisma.productCategory.createMany({
+      data: newProductCategories,
+    });
+
+    const updatedProduct = await this.prisma.product.update({
+      where: { productId: productId },
+      data: {
+        categories: {
+          set: [
+            ...product.categories.map((category) => ({
+              productId_categoryId: {
+                productId: category.productId,
+                categoryId: category.categoryId,
+              },
+            })),
+            ...newCategoryIds.map((categoryId) => ({
+              productId_categoryId: {
+                productId: productId,
+                categoryId: categoryId,
+              },
+            })),
+          ],
+        },
+      },
+    });
+
+    return updatedProduct;
   }
 
+  async removeProductCategories(productId: number, categoryIds: number[]) {
+    const deletedProductCategories = await this.prisma.productCategory.deleteMany({
+      where: {
+        productId: productId,
+        categoryId: { in: categoryIds },
+      },
+    });
+
+    return deletedProductCategories;
+  }
+  async removeAllProductCategories(productId: number) {
+    const updatedProduct = await this.prisma.product.update({
+      where: {
+        productId,
+      },
+      data: {
+        categories: {
+          deleteMany: {},
+        },
+      },
+      include: {
+        categories: true,
+      },
+    });
+    return updatedProduct;
+  }
 
 }
