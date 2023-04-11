@@ -13,13 +13,17 @@ import {OrdersModule} from "./orders/orders.module";
 import { CustomersModule } from './customers/customers.module';
 import { PrismaService } from "./prisma.service";
 import { OrderItemsModule } from './order-items/order-items.module';
+import { ShippingModule } from './shipping/shipping.module';
+import { PaymentsModule } from './payments/payments.module';
+import { SearchModule } from './search/search.module';
+
 
 
 
 @Module({
   imports: [ConfigModule.forRoot({isGlobal : true}),CategoriesModule, ProductsModule, UsersModule, AuthModule ,MulterModule.register({
     dest : './uploads'
-  }), OrdersModule, CustomersModule, OrderItemsModule ],
+  }), OrdersModule, CustomersModule, OrderItemsModule, ShippingModule, PaymentsModule ],
   controllers: [AppController],
   providers: [AppService,{
     provide : APP_GUARD,

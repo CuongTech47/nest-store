@@ -44,8 +44,8 @@ model Category {
 model ProductCategory {
   productId  Int
   categoryId Int
-  product    Product  @relation(fields: [productId], references: [productId], onDelete: Cascade)
-  category   Category @relation(fields: [categoryId], references: [categoryId], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [productId], onDelete: Cascade, onUpdate: Cascade)
+  category   Category @relation(fields: [categoryId], references: [categoryId], onDelete: Cascade, onUpdate: Cascade)
 
   @@id([productId, categoryId])
 }
@@ -97,8 +97,8 @@ model Payment {
 model OrderShipping {
   orderId    Int
   shippingId Int
-  order      Order    @relation(fields: [orderId], references: [orderId])
-  shipping   Shipping @relation(fields: [shippingId], references: [shippingId])
+  order      Order    @relation(fields: [orderId], references: [orderId], onDelete: Cascade, onUpdate: Cascade)
+  shipping   Shipping @relation(fields: [shippingId], references: [shippingId], onDelete: Cascade, onUpdate: Cascade)
 
   @@id([orderId, shippingId])
 }
@@ -106,8 +106,8 @@ model OrderShipping {
 model OrderPayment {
   orderId   Int
   paymentId Int
-  order     Order   @relation(fields: [orderId], references: [orderId])
-  payment   Payment @relation(fields: [paymentId], references: [paymentId])
+  order     Order   @relation(fields: [orderId], references: [orderId], onDelete: Cascade, onUpdate: Cascade)
+  payment   Payment @relation(fields: [paymentId], references: [paymentId], onUpdate: Cascade, onDelete: Cascade)
 
   @@id([orderId, paymentId])
 }

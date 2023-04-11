@@ -2,8 +2,8 @@ import {
   ForbiddenException,
   HttpException,
   HttpStatus,
-  Injectable,
-} from '@nestjs/common';
+  Injectable, NotFoundException
+} from "@nestjs/common";
 
 import { PrismaService } from '../prisma.service';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
@@ -74,8 +74,38 @@ export class AuthService {
     const tokens = await this.getTokens(user.userId, user.email, user.role);
     await this.updateRtHash(user.userId, tokens.refresh_token);
 
-    return tokens;
+    const data = {
+      user : {
+        name : user.username,
+        email : user.email
+      },
+      access_token : tokens.access_token,
+      refresh_token : tokens.refresh_token
+    }
+
+    return data;
   }
+
+  async getMe(userId : number) {
+      const user = await this.prisma.user.findUnique({
+        where : {
+          userId : userId
+        },
+        select : {
+          userId :true,
+          email : true,
+          username : true,
+          role : true
+        }
+      })
+
+    if (!user) {
+      throw new ForbiddenException('Access Denied')
+    }
+    return user
+  }
+
+
   async signupLocal(dto: AuthDto): Promise<Tokens> {
     const userExists = await this.prisma.user.findUnique({
       where: {
@@ -159,6 +189,7 @@ export class AuthService {
   ): Promise<Tokens> {
     const jwtPayload: JwtPayload = {
       sub: userId,
+
       email: email,
       role: role,
     };
@@ -172,8 +203,10 @@ export class AuthService {
         secret: this.config.get<string>('RT_SECRET'),
         expiresIn: 60 * 60 * 24 * 7,
       }),
+
     ]);
     return {
+
       access_token: at,
       refresh_token: rt,
     };

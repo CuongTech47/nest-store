@@ -12,7 +12,17 @@ export class CategoriesService {
     private readonly prisma: PrismaService,
   ) {}
   async create(createCategoryDto: CreateCategoryDto) {
-    return await this.prisma.category.create({ data: createCategoryDto });
+    return await this.prisma.category.create({
+      data: {
+        name : createCategoryDto.name,
+        products : {
+          create: createCategoryDto.productId.map((productId) => ({ productId })),
+        }
+      },
+      include : {
+        products : true
+      }
+    });
   }
 
   async findAll(page: number, pageSize: number) {

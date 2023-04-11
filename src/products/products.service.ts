@@ -100,6 +100,10 @@ export class ProductsService {
 
     const deletedProduct = await this.prisma.product.delete({
       where: { productId: id },
+      include : {
+        categories : true,
+        OrderItem : true
+      }
     });
     return deletedProduct;
   }

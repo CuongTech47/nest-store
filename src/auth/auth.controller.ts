@@ -55,6 +55,12 @@ export class AuthController {
     // }
 
   }
+  @UseGuards(AtGuard)
+  @Get('me')
+  async getMe(@Req() req) {
+    return await this.authService.getMe(req.user.sub)
+
+  }
 
   @Public()
   @Post('local/signup')
